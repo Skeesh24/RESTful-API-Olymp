@@ -1,0 +1,17 @@
+﻿@model AccountViewModel
+@{
+    Layout = "_Layout";
+}
+
+
+@foreach (var account in Model.Accounts)
+{
+    <div class="animalCard" style="background-color: aquamarine; margin: 20px; padding: 30px; border-radius:15px;">
+        <h1>@account.LastName, @account.FirstName</h1>
+
+        <p>
+            ID: @account.Id <br />
+            Email: @account.Email <br />
+        </p>
+    </div>
+}

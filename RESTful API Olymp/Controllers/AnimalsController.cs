@@ -1,10 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using RESTful_API_Olymp.Domain;
-using RESTful_API_Olymp.Domain.Entities;
 using RESTful_API_Olymp.Models;
-using System.Diagnostics;
-using System.Security.Policy;
 
 namespace RESTful_API_Olymp.Controllers
 {
@@ -18,16 +14,10 @@ namespace RESTful_API_Olymp.Controllers
         }
 
         [HttpGet]
-        public IActionResult Animals(long animalid)
-        {
-            var vm = new AnimalViewModel { Animals = Db.Animals.Where(x => x.Id == animalid).ToList() };
-            return View(vm);
-        }
-
-        [HttpGet]
         public IActionResult Search(DateTime startDateTime, DateTime endDateTime, int chipperId = -1, long chippingLocationId = -1, string lifeStatus = "", string gender = "", int from = -1, int size = -1)
         {
-            var vm = new AnimalViewModel {
+            var vm = new AnimalViewModel
+            {
                 Animals = Db.Animals.
                 Where(x => x.ChippingDateTime.CompareTo(startDateTime) >= 0)
                 .ToList()
@@ -68,18 +58,5 @@ namespace RESTful_API_Olymp.Controllers
             return View(vm);
         }
 
-        //[HttpPost]
-        //public IActionResult Animals()
-        //{
-        //    return RedirectToAction("Animals");
-        //}
-
-        static HttpClient client = new HttpClient();
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
     }
 }

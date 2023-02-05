@@ -3,6 +3,7 @@
     Layout = "_Layout";
 }
 
+<h2>Please, enter yr query in the search line</h2>
 
 @foreach (var animal in Model.Animals)
 {
@@ -10,16 +11,16 @@
         <h1>@animal.Name</h1>
 
         <p>
-            Types: @animal.AnimalTypes?.Select(x => x.ToString()).Aggregate((acc,x) => acc+=$"{x}, ") <br />
-            Weight: @animal.Weight <br />
+            Types: @animal.AnimalTypes?.Select(x => x.ToString()).Aggregate((acc,x) => acc+=$"{x}, ") <br /> 
+            Weight: @animal.Weight <br /> 
             Length: @animal.Length <br />
             Height: @animal.Height <br />
             Gender: @animal.Gender <br />
-            Life Status:@animal.LifeStatus <br />
+            Life Status:@animal.LifeStatus <br /> 
             Date and time of chipping: @animal.ChippingDateTime <br />
             ID of chipper: @animal.ChipperId<br />
             Chipping location ID: @animal.ChippingLocationId <br />
-            Visited Locations: @animal.VisitingLocations?.Select(x => x.ToString()).Aggregate((acc, x) => acc+=$"{x}, ") <br />
+            Visited Locations: @animal.VisitingLocations?.Select(x => x.ToString()).Aggregate((acc, x) => acc+=$"{x}, ") <br /> 
             Date and time of death: @animal.DeathDateTime
         </p>
     </div>

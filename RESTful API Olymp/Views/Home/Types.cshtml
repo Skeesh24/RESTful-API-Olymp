@@ -1,0 +1,18 @@
+﻿@model TypeViewModel
+@{
+    Layout = "_Layout";
+}
+
+<h2>Please, enter yr query in the search line</h2>
+
+@foreach (var type in Model.Types)
+{
+    <div class="animalCard" style="background-color: aquamarine; margin: 20px; padding: 30px; border-radius:15px;">
+        <h1>@type.Type</h1>
+
+        <p>
+            ID: @type.Id <br />
+        </p>
+    </div>
+}
+
