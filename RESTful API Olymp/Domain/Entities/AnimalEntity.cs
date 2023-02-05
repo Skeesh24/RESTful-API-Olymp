@@ -22,7 +22,7 @@ namespace RESTful_API_Olymp.Domain.Entities
 
         public int ChipperId { get; set; }
 
-        public long ChippingLocation { get; set; }
+        public long ChippingLocationId { get; set; }
 
         public long[]? VisitingLocations { get; set; }
 

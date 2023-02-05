@@ -1,10 +1,16 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace RESTful_API_Olymp.ViewModels
+namespace RESTful_API_Olymp.Models
 {
-    public class RegisterModel
+    public class RegistrationViewModel
     {
-        [Required(ErrorMessage = "Email не был указан")]
+        [Required(ErrorMessage = "Не введено имя")]
+        public string? FirstName { get; set; }
+
+        [Required(ErrorMessage = "Не введена фамилия")]
+        public string? SecondName { get; set; }
+
+        [Required(ErrorMessage="Не введен email")]
         public string? Email { get; set; }
 
         [Required(ErrorMessage = "Пароль не был указан")]

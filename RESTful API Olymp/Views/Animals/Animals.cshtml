@@ -1,0 +1,17 @@
+﻿@model AnimalViewModel
+@{
+    Layout = "_Layout";
+}
+
+@foreach (var animal in Model.Animals)
+{
+    <div class="animalCard" style="background-color: lightsalmon; margin-bottom: 20px; padding: 30px; border-radius:15px;">
+        <h1>@animal.Name</h1>
+
+        <p>
+            @animal.AnimalTypes?.ToString() <br /> @animal.Weight <br /> @animal.Length <br /> @animal.Height
+            @animal.Gender <br /> @animal.LifeStatus <br /> @animal.ChippingDateTime <br /> @animal.ChipperId
+            <br /> @animal.ChippingLocationId <br /> @animal.VisitingLocations?.ToString() <br /> @animal.DeathDateTime
+        </p>
+    </div>
+}
