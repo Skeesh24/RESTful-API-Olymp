@@ -46,50 +46,40 @@ namespace RESTful_API_Olymp.Controllers
         }
 
 
-        //[HttpGet]
-        //public IActionResult Search(DateTime startDateTime, DateTime endDateTime, int chipperId = -1, long chippingLocationId = -1, string lifeStatus = "", string gender = "", int from = -1, int size = -1)
-        //{
-        //    var vm = new AnimalViewModel
-        //    {
-        //        Animals = Db.Animals.
-        //        Where(x => x.ChippingDateTime.CompareTo(startDateTime) >= 0)
-        //        .ToList()
-        //    };
+        [HttpGet]
+        public IActionResult Search(string firstName = "", string lastName = "", string email = "", int from = -1, int size = -1)
+        {
+            var vm = new AccountViewModel
+            {
+                Accounts = Db.Accounts.
+                Where(x => x.FirstName == firstName)
+                .ToList()
+            };
 
-        //    if (chipperId != -1)
-        //    {
-        //        vm.Animals = vm.Animals.Where(x => x.ChipperId == chipperId).ToList();
-        //    }
+            if (lastName != "")
+            {
+                vm.Accounts = vm.Accounts.Where(x => x.LastName == lastName).ToList();
+            }
 
-        //    if (chippingLocationId != -1)
-        //    {
-        //        vm.Animals = vm.Animals.Where(x => x.ChippingLocationId == chippingLocationId).ToList();
-        //    }
+            if (email != "")
+            {
+                vm.Accounts = vm.Accounts.Where(x => x.Email == email).ToList();
+            }
 
-        //    if (lifeStatus != "")
-        //    {
-        //        vm.Animals = vm.Animals.Where(x => x.LifeStatus == lifeStatus).ToList();
-        //    }
+            if (from != -1)
+            {
+                vm.Accounts = vm.Accounts.Skip(from).ToList();
+            }
 
-        //    if (gender != "")
-        //    {
-        //        vm.Animals = vm.Animals.Where(x => x.Gender == gender).ToList();
-        //    }
+            if (size != -1)
+            {
+                vm.Accounts = vm.Accounts.Take(size).ToList();
+            }
 
-        //    if (from != -1)
-        //    {
-        //        vm.Animals = vm.Animals.Skip(from).ToList();
-        //    }
+            vm.Accounts = vm.Accounts.OrderBy(x => x.Id).ToList();
 
-        //    if (size != -1)
-        //    {
-        //        vm.Animals = vm.Animals.Take(size).ToList();
-        //    }
-
-        //    vm.Animals = vm.Animals.OrderBy(x => x.Id).ToList();
-
-        //    return View(vm);
-        //}
+            return View(vm);
+        }
 
 
     }
