@@ -17,7 +17,7 @@ namespace RESTful_API_Olymp.Data.Repositories
             return await _context.SaveChangesAsync();
         }
 
-        async Task<Guid> IDbRepository.Add<T>(T newEntity)
+        async Task<long> IDbRepository.Add<T>(T newEntity)
         {
             var entity = await _context.Set<T>().AddAsync(newEntity);
             return entity.Entity.Id;
@@ -40,12 +40,12 @@ namespace RESTful_API_Olymp.Data.Repositories
 
         IQueryable<T> IDbRepository.Select<T>(Expression<Func<T, bool>> selector)
         {
-            return _context.Set<T>().Where(selector).Where(x => x.IsActive);
+            return _context.Set<T>().Where(selector);
         }
 
         IQueryable<T> IDbRepository.SelectAll<T>()
         {
-            return _context.Set<T>().Where(x => x.IsActive);
+            return _context.Set<T>();
         }   
 
         async Task IDbRepository.Update<T>(T entity)

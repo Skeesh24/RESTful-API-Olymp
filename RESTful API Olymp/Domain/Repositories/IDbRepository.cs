@@ -11,7 +11,7 @@ namespace RESTful_API_Olymp.Data.Repositories
         public IQueryable<T> SelectAll<T>() where T : class, IEntity;
 
 
-        public Task<Guid> Add<T>(T newEntity) where T : class, IEntity;
+        public Task<long> Add<T>(T newEntity) where T : class, IEntity;
 
         public Task AddRange<T>(IEnumerable<T> entities) where T : class, IEntity;
 

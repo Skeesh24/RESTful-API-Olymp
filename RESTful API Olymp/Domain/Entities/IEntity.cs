@@ -2,10 +2,7 @@
 {
     public interface IEntity
     {
-        Guid Id { get; set; }
-
-        DateTime CreatedDate { get; set; }
-
-        bool IsActive { get; set; }
+        long Id { get; set; }
+        
     }
 }

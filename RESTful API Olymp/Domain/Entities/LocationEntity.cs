@@ -2,6 +2,8 @@
 {
     public class LocationEntity : BaseEntity
     {
-        public string? Name { get; set; }
+        public DateTime DateTimeOfVisitLocationPoint { get; set; }
+
+        public long locationPointId { get; set; }
     }
 }

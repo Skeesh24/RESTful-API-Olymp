@@ -6,17 +6,8 @@ namespace RESTful_API_Olymp.Controllers
 {
     public class HomeController : Controller
     {
-        public IActionResult Animals()
-        {
-            return View();
-        }
 
         public IActionResult Index()
-        {
-            return View();
-        }
-
-        public IActionResult Privacy()
         {
             return View();
         }

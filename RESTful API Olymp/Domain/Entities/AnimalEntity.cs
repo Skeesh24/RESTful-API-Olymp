@@ -1,11 +1,31 @@
-﻿namespace RESTful_API_Olymp.Domain.Entities
+﻿using System.ComponentModel;
+
+namespace RESTful_API_Olymp.Domain.Entities
 {
     public class AnimalEntity : BaseEntity
     {
         public string? Name { get; set; }
 
-        public int Age { get; set; }
+        public long[]? AnimalTypes { get; set; }
 
-        public DateTime ChipedDate { get; set; }
+        public float Weight { get; set; }
+
+        public float Length { get; set; }
+
+        public float Height { get; set; }
+
+        public string? Gender { get; set; }
+
+        public string? LifeStatus { get; set; }
+
+        public DateTime ChippingDateTime { get; set; }
+
+        public int ChipperId { get; set; }
+
+        public long ChippingLocation { get; set; }
+
+        public long[]? VisitingLocations { get; set; }
+
+        public DateTime DeathDateTime { get; set; }
     }
 }
