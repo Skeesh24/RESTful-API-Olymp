@@ -36,13 +36,6 @@ builder.Services.AddDbContext<TypeContext>(options =>
 });
 #endregion
 
-// установка конфигурации подключения
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options => //CookieAuthenticationOptions
-    {
-        options.LoginPath = new Microsoft.AspNetCore.Http.PathString("/Account/Login");
-    }); 
-
 
 var app = builder.Build();
 
