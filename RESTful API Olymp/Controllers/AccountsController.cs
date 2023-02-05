@@ -17,6 +17,7 @@ namespace RESTful_API_Olymp.Controllers
         [HttpGet]
         public IActionResult Search(string firstName = "", string lastName = "", string email = "", int from = -1, int size = -1)
         {
+            ViewBag.Title = "Поиск";
             var vm = new AccountViewModel { Accounts = Db.Accounts.ToList() };
 
             if (firstName != "")

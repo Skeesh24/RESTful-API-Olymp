@@ -16,6 +16,8 @@ namespace RESTful_API_Olymp.Controllers
         [HttpGet]
         public IActionResult Search(DateTime startDateTime, DateTime endDateTime, int chipperId = -1, long chippingLocationId = -1, string lifeStatus = "", string gender = "", int from = -1, int size = -1)
         {
+            ViewBag.Title = "Поиск";
+
             var vm = new AnimalViewModel
             {
                 Animals = Db.Animals.

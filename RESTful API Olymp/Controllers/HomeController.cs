@@ -19,6 +19,7 @@ namespace RESTful_API_Olymp.Controllers
         [HttpGet]
         public IActionResult Index()
         {
+            ViewBag.Title = "Главная";
             return View();
         }
 
@@ -27,6 +28,7 @@ namespace RESTful_API_Olymp.Controllers
         [HttpGet("accounts/")]
         public IActionResult Accounts(long accountId)
         {
+            ViewBag.Title = "Профиль";
             var vm = new AccountViewModel { Accounts = Db.Accounts.Where(x => x.Id == accountId).ToList() };
             return View(vm);
         }
@@ -36,6 +38,7 @@ namespace RESTful_API_Olymp.Controllers
         [HttpGet("animals/")]
         public IActionResult Animals(long animalid)
         {
+            ViewBag.Title = "Питомец";
             var vm = new AnimalViewModel { Animals = Db.Animals.Where(x => x.Id == animalid).ToList() };
             return View(vm);
         }
@@ -45,6 +48,7 @@ namespace RESTful_API_Olymp.Controllers
         [HttpGet("animals/types")]
         public IActionResult Types(long typeId)
         {
+            ViewBag.Title = "Типы";
             var vm = new TypeViewModel { Types = Db.Types.Where(x => x.Id == typeId).ToList() };
             return View(vm);
         }
@@ -54,6 +58,7 @@ namespace RESTful_API_Olymp.Controllers
         [HttpGet("locations/")]
         public IActionResult Locations(long pointId)
         {
+            ViewBag.Title = "Места";
             var vm = new PointViewModel { Points = Db.Points.Where(x => x.Id == pointId).ToList() };
             return View(vm);
         }
@@ -71,6 +76,7 @@ namespace RESTful_API_Olymp.Controllers
         [HttpGet("registration/")]
         public IActionResult Registration()
         {
+            ViewBag.Title = "Профиль";
             return View();
         }
 
