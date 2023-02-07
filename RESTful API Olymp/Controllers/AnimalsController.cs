@@ -14,48 +14,56 @@ namespace RESTful_API_Olymp.Controllers
         }
 
         [HttpGet]
-        public IActionResult Search(DateTime startDateTime, DateTime endDateTime, int chipperId = -1, long chippingLocationId = -1, string lifeStatus = "", string gender = "", int from = -1, int size = -1)
+        public IActionResult Search(DateTime startDateTime, DateTime endDateTime, int chipperId /*= -1*/, long chippingLocationId /*= -1*/, string lifeStatus/* = ""*/, string gender/* = ""*/, int from/* = -1*/, int size/* = -1*/)
         {
             ViewBag.Title = "Поиск";
 
             var vm = new AnimalViewModel
             {
-                Animals = Db.Animals.
-                Where(x => x.ChippingDateTime.CompareTo(startDateTime) >= 0)
+                Animals = Db.Animals
+                .Where(x => x.ChippingDateTime.CompareTo(startDateTime) >= 0)
+                .Where(x => x.ChippingDateTime.CompareTo(endDateTime) < 0)
+                .Where(x => x.ChipperId == chipperId)
+                .Where(x => x.ChippingLocationId == chippingLocationId)
+                .Where(x => x.LifeStatus == lifeStatus)
+                .Where(x => x.Gender == gender)
+                .Skip(from)
+                .Take(size)
+                .OrderBy(x => x.Id)
                 .ToList()
             };
 
-            if (chipperId != -1)
-            {
-                vm.Animals = vm.Animals.Where(x => x.ChipperId == chipperId).ToList();
-            }
+            //if (chipperId != -1)
+            //{
+            //    vm.Animals = vm.Animals.Where(x => x.ChipperId == chipperId).ToList();
+            //}
 
-            if (chippingLocationId != -1)
-            {
-                vm.Animals = vm.Animals.Where(x => x.ChippingLocationId == chippingLocationId).ToList();
-            }
+            //if (chippingLocationId != -1)
+            //{
+            //    vm.Animals = vm.Animals.Where(x => x.ChippingLocationId == chippingLocationId).ToList();
+            //}
 
-            if (lifeStatus != "")
-            {
-                vm.Animals = vm.Animals.Where(x => x.LifeStatus == lifeStatus).ToList();
-            }
+            //if (lifeStatus != "")
+            //{
+            //    vm.Animals = vm.Animals.Where(x => x.LifeStatus == lifeStatus).ToList();
+            //}
 
-            if (gender != "")
-            {
-                vm.Animals = vm.Animals.Where(x => x.Gender == gender).ToList();
-            }
+            //if (gender != "")
+            //{
+            //    vm.Animals = vm.Animals.Where(x => x.Gender == gender).ToList();
+            //}
 
-            if (from != -1)
-            {
-                vm.Animals = vm.Animals.Skip(from).ToList();
-            }
+            //if (from != -1)
+            //{
+            //    vm.Animals = vm.Animals.Skip(from).ToList();
+            //}
 
-            if (size != -1)
-            {
-                vm.Animals = vm.Animals.Take(size).ToList();
-            }
+            //if (size != -1)
+            //{
+            //    vm.Animals = vm.Animals.Take(size).ToList();
+            //}
 
-            vm.Animals = vm.Animals.OrderBy(x => x.Id).ToList();
+            //vm.Animals = vm.Animals.OrderBy(x => x.Id).ToList();
 
             return View(vm);
         }

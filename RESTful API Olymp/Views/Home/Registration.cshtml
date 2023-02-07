@@ -3,26 +3,58 @@
     Layout = "_Layout";
 }
 
-<form asp-controller="Account" asp-action="Registration">
+<style>
+	input[type=text], select {
+		width: 100%;
+		padding: 12px 20px;
+		margin: 8px 0;
+		display: inline-block;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+		box-sizing: border-box;
+	}
+
+	input[type=submit] {
+		width: 100%;
+		background-color: #4CAF50;
+		color: white;
+		padding: 14px 20px;
+		margin: 8px 0;
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+	}
+
+		input[type=submit]:hover {
+			background-color: #45a049;
+		}
+
+	div {
+		border-radius: 5px;
+		background-color: #f2f2f2;
+		padding: 20px;
+	}
+</style>
+
+
+<form asp-controller="home" asp-action="registration">
     <div class="col-6 col-12-mobilep">
-		<input type="text" name="firstName" id="firstName" placeholder="Name" asp-for="FirstName"/>
+		<input type="text" name="firstName" id="firstName" placeholder="FirstName" asp-for="FirstName" />
 	</div>
 
 	<div class="col-6 col-12-mobilep">
-		<input type="text" name="secondName" id="secondName" placeholder="Name" asp-for="SecondName"/>
+		<input type="text" name="secondName" id="secondName" placeholder="LastName" asp-for="SecondName" />
+	</div>
+
+	<div class="col-6 col-12-mobilep">
+		<input name="text" name="email" placeholder="Email" asp-for="Email" />
+	</div>
+
+	<div class="col-6 col-12-mobilep">
+		<input name="text" name="password" placeholder="Password" asp-for="Password" />
 	</div>
 
 	<div class="col-12">
-		<textarea name="text" name="email" placeholder="Email" asp-for="Email"></textarea>
-	</div>
-
-	<div class="col-12">
-		<textarea name="text" name="password" placeholder="Password" asp-for="Password"></textarea>
-	</div>
-
-	<div class="col-12">
-		<ul class="actions">
-			<li><input type="submit" class="button alt" value="Send Message" /></li>
-		</ul>
+		<input type="submit" class="button alt" value="Send Message" />
 	</div>
 </form>

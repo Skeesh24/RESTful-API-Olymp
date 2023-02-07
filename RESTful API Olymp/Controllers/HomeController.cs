@@ -25,7 +25,7 @@ namespace RESTful_API_Olymp.Controllers
 
 
 
-        [HttpGet("accounts/")]
+        [HttpGet("accounts/{accountId?}")]
         public IActionResult Accounts(long accountId)
         {
             ViewBag.Title = "Профиль";
@@ -35,7 +35,7 @@ namespace RESTful_API_Olymp.Controllers
 
 
 
-        [HttpGet("animals/")]
+        [HttpGet("animals/{animalId?}")]
         public IActionResult Animals(long animalid)
         {
             ViewBag.Title = "Питомец";
@@ -55,21 +55,48 @@ namespace RESTful_API_Olymp.Controllers
 
 
 
-        [HttpGet("locations/")]
-        public IActionResult Locations(long pointId)
+        [HttpGet]
+        public IActionResult Locations(DateTime startDateTime, DateTime endDateTime, int from /*= -1*/, int size/* = -1*/)
         {
             ViewBag.Title = "Места";
-            var vm = new PointViewModel { Points = Db.Points.Where(x => x.Id == pointId).ToList() };
+            var vm = new LocationsViewModel { 
+                Locations = Db.Locations
+                .Where(x => x.DateTimeOfVisitLocationPoint.CompareTo(startDateTime) >= 0)
+                .Where(x => x.DateTimeOfVisitLocationPoint.CompareTo(endDateTime) < 0)
+                .Skip(from)
+                .Take(size)
+                .OrderBy(x => x.Id)
+                .ToList() 
+            };
+
             return View(vm);
         }
 
 
 
-        // //
+        [HttpGet("animals/{animalId:long}/locations")]
+        public IActionResult AnimalLocations(long animalId)
+        {
+            var visLocs = Db?.Animals.Where(x => x.Id == animalId)?.FirstOrDefault()?.VisitingLocations;
+            var locations = new LocationEntity[visLocs.Length];
 
-        // GET /animals/{animalId}/locations
+            for(var i = 0; i < visLocs.Length-1; i++)
+            {
+                locations[i] = Db?.Locations?.Where(x => x.Id == visLocs[i])?.FirstOrDefault();
+            }
 
-        // //
+            return View(locations);
+        }
+
+
+
+        [HttpGet("locations/{pointId?}")]
+        public IActionResult Points(long pointId)
+        {
+            var vm = new PointViewModel { Points = Db.Points.Where(x => x.Id == pointId).ToList() };
+            return View(vm);
+        }
+
 
 
 
@@ -94,7 +121,7 @@ namespace RESTful_API_Olymp.Controllers
             });
             Db.SaveChanges();
 
-            return Redirect($"account/accounts?accountid={newid}");
+            return Redirect($"accounts?accountid={newid}");
         }
 
     }
