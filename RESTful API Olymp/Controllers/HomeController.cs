@@ -44,6 +44,8 @@ namespace RESTful_API_Olymp.Controllers
         }
 
 
+        
+
 
         [HttpGet("animals/types")]
         public IActionResult Types(long typeId)
