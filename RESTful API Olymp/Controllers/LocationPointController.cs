@@ -2,6 +2,7 @@
 using RESTful_API_Olymp.Domain;
 using RESTful_API_Olymp.Domain.Entities;
 using RESTful_API_Olymp.Models;
+using System.Text.Json;
 
 namespace RESTful_API_Olymp.Controllers
 {
@@ -34,9 +35,25 @@ namespace RESTful_API_Olymp.Controllers
 
 
 
-        [HttpPost]
-        public IActionResult LocationsPost([FromBody] PointPostViewModel point)
+        public PointPostViewModel getPointFromRequestBody(HttpRequest request)
         {
+            return JsonSerializer.Deserialize<PointPostViewModel>(GetJSONRequestBody(request.Body));
+        }
+
+        public static string GetJSONRequestBody(Stream stream)
+        {
+            var bodyStream = new StreamReader(stream);
+            var bodyText = bodyStream.ReadToEndAsync();
+            return bodyText.Result;
+        }
+
+
+
+        [HttpPost]
+        public IActionResult LocationsPost()
+        {
+            var point = getPointFromRequestBody(Request);
+
             long newid = Db.Points.ToList().Count + 1;
             Db.Points.Add(new PointEntity
             {
@@ -52,8 +69,10 @@ namespace RESTful_API_Olymp.Controllers
 
 
         [HttpPut]
-        public IActionResult LocationsPut(long pointId, [FromBody] PointPostViewModel point)
+        public IActionResult LocationsPut(long pointId)
         {
+            var point = getPointFromRequestBody(Request);
+
             var putPoint = Db?.Points.Where(x => x.Id == pointId).FirstOrDefault();
             if(putPoint == null)
             {

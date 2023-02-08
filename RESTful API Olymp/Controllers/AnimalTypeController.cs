@@ -2,6 +2,7 @@
 using RESTful_API_Olymp.Domain;
 using RESTful_API_Olymp.Domain.Entities;
 using RESTful_API_Olymp.Models;
+using System.Text.Json;
 
 namespace RESTful_API_Olymp.Controllers
 {
@@ -25,10 +26,25 @@ namespace RESTful_API_Olymp.Controllers
 
 
 
+        public TypePostViewModel getTypeFromRequestBody(HttpRequest request)
+        {
+            return JsonSerializer.Deserialize<TypePostViewModel>(GetJSONRequestBody(request.Body));
+        }
+
+        public static string GetJSONRequestBody(Stream stream)
+        {
+            var bodyStream = new StreamReader(stream);
+            var bodyText = bodyStream.ReadToEndAsync();
+            return bodyText.Result;
+        }
+
+
 
         [HttpPost]
-        public IActionResult TypePost([FromBody] TypePostViewModel type)
+        public IActionResult TypePost()
         {
+            var type = getTypeFromRequestBody(Request);
+
             long newid = Db.Types.ToList().Count + 1;
 
             if (type == null)
@@ -49,8 +65,10 @@ namespace RESTful_API_Olymp.Controllers
 
 
         [HttpPut]
-        public IActionResult TypePut(long typeId, [FromBody] TypePostViewModel type)
+        public IActionResult TypePut(long typeId)
         {
+            var type = getTypeFromRequestBody(Request);
+
             var putType = Db?.Types.Where(x => x.Id == typeId).FirstOrDefault();
             if (putType == null)
             {
@@ -76,7 +94,7 @@ namespace RESTful_API_Olymp.Controllers
 
 
 
-        [HttpDelete/*("locations/")*/]
+        [HttpDelete]
         public NoContentResult TypeDelete(long typeId)
         {
             var deleteType = Db?.Types?.Where(x => x.Id == typeId)?.FirstOrDefault();

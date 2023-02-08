@@ -2,6 +2,7 @@
 using RESTful_API_Olymp.Domain;
 using RESTful_API_Olymp.Domain.Entities;
 using RESTful_API_Olymp.Models;
+using System.Text.Json;
 
 namespace RESTful_API_Olymp.Controllers
 {
@@ -74,10 +75,25 @@ namespace RESTful_API_Olymp.Controllers
 
 
 
+        public AnimalPostViewModel getAnimalFromRequestBody(HttpRequest request)
+        { 
+            return JsonSerializer.Deserialize<AnimalPostViewModel>(GetJSONRequestBody(request.Body));
+        }
+
+        public static string GetJSONRequestBody(Stream stream)
+        {
+            var bodyStream = new StreamReader(stream);
+            var bodyText = bodyStream.ReadToEndAsync();
+            return bodyText.Result;
+        }
+
+
 
         [HttpPost]
-        public IActionResult AnimalPost([FromBody] AnimalPostViewModel animal)
+        public IActionResult AnimalPost()
         {
+            var animal = getAnimalFromRequestBody(Request);
+
             long newid = Db.Animals.ToList().Count + 1;
 
             if (animal == null)
@@ -92,8 +108,8 @@ namespace RESTful_API_Olymp.Controllers
                 Length = animal.Length,
                 Height = animal.Height,
                 Gender = animal.Gender,
-                ChipperId = animal.chipperId,
-                ChippingLocationId = animal.chippingLocationId,
+                ChipperId = animal.ChipperId,
+                ChippingLocationId = animal.ChippingLocationId,
                 Id = newid,
             });
 
@@ -104,8 +120,10 @@ namespace RESTful_API_Olymp.Controllers
 
 
         [HttpPut]
-        public IActionResult AnimalPut(long animalId, [FromBody] AnimalPostViewModel animal)
+        public IActionResult AnimalPut(long animalId)
         {
+            var animal = getAnimalFromRequestBody(Request);
+
             var putAnimal = Db?.Animals.Where(x => x.Id == animalId).FirstOrDefault();
             if (putAnimal == null)
             {
@@ -125,8 +143,8 @@ namespace RESTful_API_Olymp.Controllers
                 Length = animal.Length,
                 Height = animal.Height,
                 Gender = animal.Gender,
-                ChipperId = animal.chipperId,
-                ChippingLocationId = animal.chippingLocationId,
+                ChipperId = animal.ChipperId,
+                ChippingLocationId = animal.ChippingLocationId,
                 Id = animalId,
             });
 
@@ -137,7 +155,7 @@ namespace RESTful_API_Olymp.Controllers
 
 
 
-        [HttpDelete/*("locations/")*/]
+        [HttpDelete]
         public NoContentResult AnimalDelete(long animalId)
         {
             var deleteAnimal = Db?.Animals?.Where(x => x.Id == animalId)?.FirstOrDefault();
