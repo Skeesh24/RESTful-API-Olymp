@@ -32,3 +32,13 @@ head{
 .genCard {
     background-color: darkslategray; margin: 20px; padding: 30px; border-radius:15px;
 }
+
+.nav-link{
+    border-radius: 3px;
+    background-color:#282828;
+}
+
+    .nav-link:hover {
+        border-radius: 13px;
+        background-color: dimgray;
+    }

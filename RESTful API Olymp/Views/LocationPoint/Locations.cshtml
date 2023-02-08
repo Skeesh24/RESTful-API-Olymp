@@ -8,11 +8,13 @@
 @foreach (var point in Model.Points)
 {
     <div class="genCard"  >
+        <h1>Точка локации животного</h1>
         <p>
             ID: @point.Id <br />
             latitude: @point.latitude <br />
             longitude: @point.longitude <br />
         </p>
+        <button asp-controller="LocationPoint" asp-action="locations"></button>
     </div>
 }
 

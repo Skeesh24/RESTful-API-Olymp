@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RESTful_API_Olymp.Domain;
+using RESTful_API_Olymp.Domain.Entities;
 using RESTful_API_Olymp.Models;
 
 namespace RESTful_API_Olymp.Controllers
@@ -71,5 +72,85 @@ namespace RESTful_API_Olymp.Controllers
             return View(vm);
         }
 
+
+
+
+        [HttpPost]
+        public IActionResult AnimalPost([FromBody] AnimalPostViewModel animal)
+        {
+            long newid = Db.Animals.ToList().Count + 1;
+
+            if (animal == null)
+            {
+                return BadRequest();
+            }
+
+            Db.Animals.Add(new AnimalEntity
+            {
+                AnimalTypes = animal.AnimalTypes,
+                Weight = animal.Weight,
+                Length = animal.Length,
+                Height = animal.Height,
+                Gender = animal.Gender,
+                ChipperId = animal.chipperId,
+                ChippingLocationId = animal.chippingLocationId,
+                Id = newid,
+            });
+
+            Db.SaveChanges();
+            return RedirectToAction($"locationpoint/locations?locationId={newid}");
+        }
+
+
+
+        [HttpPut]
+        public IActionResult AnimalPut(long animalId, [FromBody] AnimalPostViewModel animal)
+        {
+            var putAnimal = Db?.Animals.Where(x => x.Id == animalId).FirstOrDefault();
+            if (putAnimal == null)
+            {
+                return NotFound();
+            }
+
+            if(animal == null)
+            {
+                return BadRequest();
+            }
+
+            Db?.Animals.Remove(putAnimal);
+            Db?.Animals.Add(new AnimalEntity
+            {
+                AnimalTypes = animal.AnimalTypes,
+                Weight = animal.Weight,
+                Length = animal.Length,
+                Height = animal.Height,
+                Gender = animal.Gender,
+                ChipperId = animal.chipperId,
+                ChippingLocationId = animal.chippingLocationId,
+                Id = animalId,
+            });
+
+
+            Db?.SaveChanges();
+            return AcceptedAtAction("");
+        }
+
+
+
+        [HttpDelete/*("locations/")*/]
+        public NoContentResult AnimalDelete(long animalId)
+        {
+            var deleteAnimal = Db?.Animals?.Where(x => x.Id == animalId)?.FirstOrDefault();
+
+            if (deleteAnimal == null)
+            {
+                return NoContent();
+            }
+            Db?.Animals.Remove(deleteAnimal);
+
+
+            Db?.SaveChanges();
+            return NoContent();
+        }
     }
 }

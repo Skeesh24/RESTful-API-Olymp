@@ -19,34 +19,35 @@ namespace RESTful_API_Olymp.Controllers
         public IActionResult Search(string firstName = "", string lastName = "", string email = "", int from = -1, int size = -1)
         {
             ViewBag.Title = "Поиск";
-            var vm = new AccountViewModel { Accounts = Db.Accounts.ToList() };
+            var vm = new AccountViewModel { Accounts = Db?.Accounts.ToList() };
 
-            if (firstName != "")
+            if (firstName != "" && vm != null)
             {
-                vm.Accounts = vm.Accounts.Where(x => x.FirstName == firstName).ToList();
+                vm.Accounts = vm?.Accounts?.Where(x => x.FirstName == firstName).ToList();
             }
 
-            if (lastName != "")
+            if (lastName != "" && vm != null)
             {
-                vm.Accounts = vm.Accounts.Where(x => x.LastName == lastName).ToList();
+                vm.Accounts = vm?.Accounts?.Where(x => x.LastName == lastName).ToList();
             }
 
-            if (email != "")
+            if (email != "" && vm != null)
             {
-                vm.Accounts = vm.Accounts.Where(x => x.Email == email).ToList();
+                vm.Accounts = vm?.Accounts?.Where(x => x.Email == email).ToList();
             }
 
-            if (from != -1)
+            if (from != -1 && vm != null)
             {
-                vm.Accounts = vm.Accounts.Skip(from).ToList();
+                vm.Accounts = vm?.Accounts?.Skip(from).ToList();
             }
 
-            if (size != -1)
+            if (size != -1 && vm != null)
             {
-                vm.Accounts = vm.Accounts.Take(size).ToList();
+                vm.Accounts = vm?.Accounts?.Take(size).ToList();
             }
 
-            vm.Accounts = vm.Accounts.OrderBy(x => x.Id).ToList();
+            if (vm != null)
+                vm.Accounts = vm?.Accounts?.OrderBy(x => x.Id).ToList();
 
             return View(vm);
         }
@@ -57,9 +58,11 @@ namespace RESTful_API_Olymp.Controllers
         public IActionResult Accounts(long accountId)
         {
             ViewBag.Title = "Профиль";
-            var vm = new AccountViewModel { Accounts = Db.Accounts.Where(x => x.Id == accountId).ToList() };
+            var vm = new AccountViewModel { Accounts = Db?.Accounts.Where(x => x.Id == accountId).ToList() };
             return View(vm);
         }
 
+
+        
     }
 }
