@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <Folder Include="Domain\Repositories\" />
+    <Folder Include="Views\AnimalVisitedLocation\" />
   </ItemGroup>
 
 </Project>

@@ -1,25 +1,20 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RESTful_API_Olymp.Domain;
-using RESTful_API_Olymp.Domain.Entities;
-using RESTful_API_Olymp.Models;
 
 namespace RESTful_API_Olymp.Controllers
 {
-    public class HomeController : Controller
+    public class AnimalVisitedLocationController : Controller
     {
         private readonly DataContext? Db;
 
-        public HomeController(DataContext? context)
+        public AnimalVisitedLocationController(DataContext? context)
         {
             Db = context;
         }
 
 
-
-        [HttpGet]
         public IActionResult Index()
         {
-            ViewBag.Title = "Главная";
             return View();
         }
     }

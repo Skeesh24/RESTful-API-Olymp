@@ -11,8 +11,24 @@ html {
 html {
   position: relative;
   min-height: 100%;
+  
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
+    color: white;
+    background-color: #282828;
+}
+
+div {
+    color: white;
+    background-color: #282828;
+}
+
+head{
+    background-color:black;
+}
+
+.genCard {
+    background-color: darkslategray; margin: 20px; padding: 30px; border-radius:15px;
 }

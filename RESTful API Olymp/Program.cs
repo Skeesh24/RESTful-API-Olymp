@@ -33,12 +33,15 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-//app.MapControllerRoute(
-//    name: "default",
-//    pattern: "{controller=Animals}/{action=Animals}/{animalid?}");
-
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/");
+
+// -Подумать над паттернами роутов- //
+//app.MapControllerRoute(
+//    name: "Account",
+//    pattern: "{controller=Account}/{action=}"
+//);
+// //
 
 app.Run();

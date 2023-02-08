@@ -4,16 +4,16 @@ using RESTful_API_Olymp.Models;
 
 namespace RESTful_API_Olymp.Controllers
 {
-    public class AnimalsController : Controller
+    public class AnimalController : Controller
     {
         private readonly DataContext? Db;
 
-        public AnimalsController(DataContext? context)
+        public AnimalController(DataContext? context)
         {
             Db = context;
         }
 
-        [HttpGet]
+        [HttpGet("animal/animals/search")]
         public IActionResult Search(DateTime startDateTime, DateTime endDateTime, int chipperId = -1, long chippingLocationId = -1, string lifeStatus = "", string gender = "", int from = -1, int size = -1)
         {
             ViewBag.Title = "Поиск";
@@ -57,6 +57,17 @@ namespace RESTful_API_Olymp.Controllers
 
             vm.Animals = vm.Animals.OrderBy(x => x.Id).ToList();
 
+            return View(vm);
+        }
+
+
+
+
+        [HttpGet/*("animals/")*/]
+        public IActionResult Animals(long animalid)
+        {
+            ViewBag.Title = "Питомец";
+            var vm = new AnimalViewModel { Animals = Db.Animals.Where(x => x.Id == animalid).ToList() };
             return View(vm);
         }
 
