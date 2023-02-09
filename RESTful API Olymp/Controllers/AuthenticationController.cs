@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using RESTful_API_Olymp.Domain;
+using RESTful_API_Olymp.Domain.CodeResults;
 using RESTful_API_Olymp.Domain.Entities;
+using System.Text;
 
 namespace RESTful_API_Olymp.Controllers
 {
@@ -24,6 +27,22 @@ namespace RESTful_API_Olymp.Controllers
         [HttpPost]
         public IActionResult Registration(string firstName, string secondName, string email, string password)
         {
+            if (string.IsNullOrEmpty(firstName) || firstName.Split().Length > 0)
+                return BadRequest();
+
+            if (string.IsNullOrEmpty(secondName) || secondName.Split().Length > 0)
+                return BadRequest();
+
+            if (string.IsNullOrEmpty(email) || secondName.Split().Length > 0)
+                return BadRequest();
+
+            if (string.IsNullOrEmpty(password) || password.Split().Length > 0)
+                return BadRequest();
+
+            if (Db.Accounts.Any(x => x.Email == email))
+                return new ExistedEmailResult();
+
+
             var newid = Db.Accounts.ToList().Count + 1;
             Db.Accounts.Add(new AccountEntity
             {
@@ -33,10 +52,15 @@ namespace RESTful_API_Olymp.Controllers
                 Password = password,
                 Id = newid,
             });
-            Db.SaveChanges();
 
-            return RedirectToAction($"animals/animals?accountid={newid}");
+
+            Db.SaveChanges();
+            Response.StatusCode = 201;
+            return Redirect($"home/index");
         }
 
+
+
+        
     }
 }

@@ -10,7 +10,7 @@
         <h1>@animal.Name</h1>
 
         <p>
-            Types: [@String.Join(", ",animal.AnimalTypes?.Select(x => x+"")?.Aggregate((acc,x) => acc+=$"{x}")?.ToCharArray())] <br />
+            Types: [@String.Join(", ",animal.AnimalTypes.Select(x => x+"")?.Aggregate((acc,x) => acc+=$"{x}")?.ToCharArray())] <br />
             Weight: @animal.Weight <br />
             Length: @animal.Length <br />
             Height: @animal.Height <br />
@@ -19,7 +19,7 @@
             Date and time of chipping: @animal.ChippingDateTime <br />
             ID of chipper: @animal.ChipperId<br />
             Chipping location ID: @animal.ChippingLocationId <br />
-            Visited Locations: [@String.Join(", ", animal.VisitingLocations?.Select(x => x+"").Aggregate((acc, x) => acc+=$"{x}").ToCharArray())] <br />
+            Visited Locations: [@String.Join(", ", animal.VisitingLocations.Select(x => x + "").Aggregate((acc, x) => acc += $"{x}").ToCharArray())] <br/>
             Date and time of death: @animal.DeathDateTime
         </p>
     </div>

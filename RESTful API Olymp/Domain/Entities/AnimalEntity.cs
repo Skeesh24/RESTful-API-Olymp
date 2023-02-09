@@ -6,7 +6,7 @@ namespace RESTful_API_Olymp.Domain.Entities
     {
         public string? Name { get; set; }
 
-        public long[]? AnimalTypes { get; set; }
+        public long[] AnimalTypes { get; set; }
 
         public float Weight { get; set; }
 
@@ -24,7 +24,7 @@ namespace RESTful_API_Olymp.Domain.Entities
 
         public long ChippingLocationId { get; set; }
 
-        public long[]? VisitingLocations { get; set; }
+        public long[] VisitingLocations { get; set; }
 
         public DateTime DeathDateTime { get; set; }
     }

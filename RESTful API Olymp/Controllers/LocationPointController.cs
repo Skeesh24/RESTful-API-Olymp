@@ -17,7 +17,7 @@ namespace RESTful_API_Olymp.Controllers
 
 
 
-        [HttpGet/*("locations/")*/]
+        [HttpGet]
         public IActionResult Locations(long pointId)
         {
             ViewBag.Title = "Места";
@@ -37,10 +37,10 @@ namespace RESTful_API_Olymp.Controllers
 
         public PointPostViewModel getPointFromRequestBody(HttpRequest request)
         {
-            return JsonSerializer.Deserialize<PointPostViewModel>(GetJSONRequestBody(request.Body));
+            return JsonSerializer.Deserialize<PointPostViewModel>(GetStringRequestBody(request.Body));
         }
 
-        public static string GetJSONRequestBody(Stream stream)
+        public static string GetStringRequestBody(Stream stream)
         {
             var bodyStream = new StreamReader(stream);
             var bodyText = bodyStream.ReadToEndAsync();
@@ -99,7 +99,7 @@ namespace RESTful_API_Olymp.Controllers
         
         
         
-        [HttpDelete/*("locations/")*/]
+        [HttpDelete]
         public NoContentResult LocationsDelete(long pointId)
         {
             var deletePoint = Db?.Points?.Where(x => x.Id == pointId)?.FirstOrDefault();
