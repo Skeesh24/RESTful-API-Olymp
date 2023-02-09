@@ -14,9 +14,9 @@ namespace RESTful_API_Olymp.Domain.Entities
 
         public float Height { get; set; }
 
-        public string? Gender { get; set; }
+        public string Gender { get; set; }
 
-        public string? LifeStatus { get; set; }
+        public string LifeStatus { get; set; }
 
         public DateTime ChippingDateTime { get; set; }
 
