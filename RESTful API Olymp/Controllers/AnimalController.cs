@@ -18,6 +18,28 @@ namespace RESTful_API_Olymp.Controllers
 
 
 
+        [HttpGet]
+        public IActionResult Animals(long? animalid)
+        {
+            if (animalid == 0 || animalid == null)
+                return BadRequest();
+
+            if (!Authenticate(out int code) && code != 1)
+                return Unauthorized();
+
+            var getAnimal = Db.Animals.Where(x => x.Id == animalid).FirstOrDefault();
+
+            if(getAnimal == null)
+                return NotFound();
+
+            // возвращаем новое животное в джейсн
+            //Response.Body = SerializeAnimal(getAnimal);
+            Response.StatusCode = 200;
+            return Json(getAnimal);
+        }
+
+
+
         [HttpGet("animal/animals/search")]
         public IActionResult Search(DateTime? startDateTime, DateTime? endDateTime, int chipperId, long chippingLocationId, string lifeStatus, string gender, int from, int size)
         {
@@ -26,17 +48,17 @@ namespace RESTful_API_Olymp.Controllers
 
             if (from < 0 || size <= 0) return BadRequest();
 
+            // чек на нул, т.к. парсер асп даст нул из квери лайна, если не удалось скастить к типу DateTime, здесь все ок
             if(startDateTime == null || endDateTime == null) return BadRequest();
 
             if(chipperId <= 0 || chippingLocationId <= 0) return BadRequest();
 
             if(!"ALIVEDEAD".Contains(lifeStatus) || !"MALEFEMALEOTHER".Contains(gender)) return BadRequest();
-                 
-            var vm = new AnimalViewModel
-            {
-                Animals = Db.Animals
-                .Where(x => x.ChippingDateTime.CompareTo(startDateTime) >= 0)
-                .Where(x => x.ChippingDateTime.CompareTo(endDateTime) > 0)
+
+            var foundedArr =
+                Db.Animals
+                .Where(x => x.ChippingDateTime.CompareTo(startDateTime.Value) >= 0)
+                .Where(x => x.ChippingDateTime.CompareTo(endDateTime.Value) < 0)
                 .Where(x => x.ChipperId == chipperId)
                 .Where(x => x.ChippingLocationId == chippingLocationId)
                 .Where(x => x.LifeStatus == lifeStatus)
@@ -44,33 +66,11 @@ namespace RESTful_API_Olymp.Controllers
                 .Skip(from)
                 .Take(size)
                 .OrderBy(x => x.Id)
-                .ToList()
-            };
-
-            // возвращать джейсн а не хтмл
-            return View(vm);
-        }
+                .ToArray();
 
 
-
-        [HttpGet]
-        public IActionResult Animals(long? animalid)
-        {
-            if (animalid == 0 || animalid == null)
-                return BadRequest();
-
-            if (!Authenticate(out int code) || code == 1)
-                return Unauthorized();
-
-            var listForShow = Db.Animals.Where(x => x.Id == animalid).ToList();
-            
-            if(listForShow.Count == 0)
-                return NotFound();
-
-            // возвращаем джейсн а не хтмл
-            ViewBag.Title = "Питомец";
-            var vm = new AnimalViewModel { Animals = listForShow };
-            return View(vm);
+            Response.StatusCode = 200;
+            return Json(foundedArr);
         }
 
 
@@ -81,7 +81,7 @@ namespace RESTful_API_Olymp.Controllers
             if(!Authenticate(out int code) && code == 0)
                 return Unauthorized();         
 
-            var animal = getAnimalFromRequestBody(Request);
+            var animal = DeserializeAnimal(Request);
             if (animal == null)
             {
                 return BadRequest();
@@ -96,50 +96,68 @@ namespace RESTful_API_Olymp.Controllers
             if (animal.ChipperId == null || animal.ChipperId <= 0) return BadRequest();
             if (animal.ChippingLocationId == null || animal.ChippingLocationId <= 0) return BadRequest();
 
-            // протестить. здесь чекаем все типы в бд, на то что пришедший реквест содержит в себе все типы, которые есть в этой таблице
-            if(!Db.Types.All(type => animal.AnimalTypes.All(curType => curType == type.Id)))
-                return NotFound();
+            // чек на то, что в таблице типов есть все те типы, что указаны в реквесте
+            foreach(var type in Db.Types.ToArray())
+            {
+                if(!animal.AnimalTypes.All(x => x == type.Id))
+                    return NotFound();
+            }
 
-            // акааунт с чиппер айди не найден - это что
+            // чек на то, что чиппер айди присутствует в таблице акков
+            foreach(var acc in Db.Accounts.ToArray())
+            {
+                if(animal.ChipperId != acc.Id)
+                    return NotFound();
+            }
 
             if (!Db.Locations.Any(x => x.locationPointId == animal.ChippingLocationId))
                 return NotFound();
     
+            // чек массива типов на дубликаты
             foreach(var type in animal.AnimalTypes)
             {
                 if (animal.AnimalTypes.Where(x => x == type).Count() > 1)
                     return Conflict();
             }
 
+            animal.LifeStatus = "ALIVE";
 
             long newid = Db.Animals.ToList().Count + 1;
-            Db.Animals.Add(new AnimalEntity
+            var newAnimal = new AnimalEntity
             {
-                AnimalTypes = animal.AnimalTypes.Select(x => x.Value).ToArray(),
-                Weight = animal.Weight.Value,
-                Length = animal.Length.Value,
-                Height = animal.Height.Value,
-                Gender = animal.Gender,
-                ChipperId = animal.ChipperId.Value,
-                ChippingLocationId = animal.ChippingLocationId.Value,
                 Id = newid,
-            });
+                AnimalTypes = animal.AnimalTypes.Select(x => x).ToArray(),
+                Weight = animal.Weight,
+                Length = animal.Length,
+                Height = animal.Height,
+                LifeStatus = animal.LifeStatus,
+                Gender = animal.Gender,
+                ChipperId = animal.ChipperId,
+                ChippingLocationId = animal.ChippingLocationId,
+                ChippingDateTime = DateTime.Now,
+            };
+            newAnimal.VisitingLocations = new long[] { animal.ChippingLocationId };
+
+            Db.Animals.Add(newAnimal);
 
 
+            Response.StatusCode = 201;
             Db.SaveChanges();
-            return StatusCode(201);
+            return Json(newAnimal);
         }
 
 
 
         [HttpPut]
-        public IActionResult AnimalPut(long animalId)
+        public IActionResult AnimalPut(long? animalId)
         {
+            if (animalId <= 0 || animalId == null)
+                return BadRequest();
+
             if (!Authenticate(out int code) && code == 0)
                 return Unauthorized();
 
-            // во вью модели у меня нет поля лайф статус, а по тз я должен его иметь и чекать на валидность
-            var animal = getAnimalFromRequestBody(Request);
+            var animal = DeserializeAnimal(Request);
 
             var putAnimal = Db?.Animals.Where(x => x.Id == animalId).FirstOrDefault();
             if (putAnimal == null)
@@ -147,45 +165,78 @@ namespace RESTful_API_Olymp.Controllers
                 return NotFound();
             }
 
-            if(animal == null)
-            {
+            if (animal == null)
                 return BadRequest();
+
+            if (animal.Weight == null || animal.Weight == 0) 
+                return BadRequest();
+
+            if (animal.Length == null || animal.Length == 0) 
+                return BadRequest();
+
+            if (animal.Height == null || animal.Height == 0) 
+                return BadRequest();
+
+            if (animal.Gender == null || !"MALEFEMALEOTHER".Contains(animal.Gender)) 
+                return BadRequest();
+
+            if (animal.ChipperId == null || animal.ChipperId <= 0) 
+                return BadRequest();
+
+            if (animal.ChippingLocationId == null || animal.ChippingLocationId <= 0)
+                return BadRequest();
+
+            // новая точка чипирования совпадает с первой посещенной точкой локации
+            if (animal.ChippingLocationId == Db.Locations?.FirstOrDefault()?.locationPointId)
+                return BadRequest();
+
+            if (!"ALIVEDEAD".Contains(animal.LifeStatus))
+                return BadRequest();
+
+            // попытка воскресения :O
+            if (putAnimal.LifeStatus == "DEAD" && animal.LifeStatus == "ALIVE")
+                return BadRequest();
+
+
+
+            // чек на то, что чиппер айди присутствует в таблице акков
+            foreach (var acc in Db.Accounts.ToArray())
+            {
+                if (animal.ChipperId != acc.Id)
+                    return NotFound();
             }
-
-
-            if (animal.Weight == null || animal.Weight == 0) return BadRequest();
-            if (animal.Length == null || animal.Length == 0) return BadRequest();
-            if (animal.Height == null || animal.Height == 0) return BadRequest();
-            if (animal.Gender == null || !"MALEFEMALEOTHER".Contains(animal.Gender)) return BadRequest();
-            if (animal.ChipperId == null || animal.ChipperId <= 0) return BadRequest();
-            if (animal.ChippingLocationId == null || animal.ChippingLocationId <= 0) return BadRequest();
-            if (animal.ChippingLocationId == Db.Locations?.FirstOrDefault()?.locationPointId) return BadRequest();
-
-
-            // аккаунт с чиппер айди не найден - это что
 
             if (!Db.Locations.Any(x => x.locationPointId == animal.ChippingLocationId))
                 return NotFound();
 
+
+            if (animal.LifeStatus == "DEAD")
+                animal.DeathDateTime = DateTime.Now;
+
             Db?.Animals.Remove(putAnimal);
-            Db?.Animals.Add(new AnimalEntity
+            var newAnimal = new AnimalEntity
             {
-                AnimalTypes = animal.AnimalTypes.Select(x => x.Value).ToArray(),
-                Name = putAnimal.Name,
+                Id = animalId.Value,
+                AnimalTypes = animal.AnimalTypes.Select(x => x).ToArray(),
                 LifeStatus = putAnimal.LifeStatus,
-                VisitingLocations = putAnimal.VisitingLocations,
-                Weight = animal.Weight.Value,
-                Length = animal.Length.Value,
-                Height = animal.Height.Value,
+                VisitingLocations = putAnimal.VisitingLocations.Append(animal.ChippingLocationId).ToArray(),
+                Weight = animal.Weight,
+                Length = animal.Length,
+                Height = animal.Height,
                 Gender = animal.Gender,
-                ChipperId = animal.ChipperId.Value,
-                ChippingLocationId = animal.ChippingLocationId.Value,
-                Id = animalId,
-            });
+                ChipperId = animal.ChipperId,
+                ChippingLocationId = animal.ChippingLocationId,
+            };
+            if(animal.LifeStatus != null)
+                newAnimal.LifeStatus = animal.LifeStatus;
+
+            Db?.Animals.Add(newAnimal);
 
 
             Db?.SaveChanges();
-            return Accepted();
+            Response.StatusCode = 200;
+            // TODO: уточнить, почему код ответа 200, а не 202
+            return Json(newAnimal) ;
         }
 
 
@@ -199,9 +250,15 @@ namespace RESTful_API_Olymp.Controllers
             if (!Authenticate(out int code) && code == 0)
                 return Unauthorized();
 
-            // животное покинуло локацию чипирования, при этом есть другие посещенные точки
 
             var deleteAnimal = Db?.Animals?.Where(x => x.Id == animalId)?.FirstOrDefault();
+
+            if (deleteAnimal == null)
+                return NotFound();
+
+            // животное покинуло локацию чипирования, при этом есть другие посещенные точки
+            if (deleteAnimal.ChippingLocationId != deleteAnimal.VisitingLocations.First() && deleteAnimal.VisitingLocations.Length > 1)
+                return BadRequest();
 
             if (deleteAnimal == null)
             {
@@ -209,17 +266,34 @@ namespace RESTful_API_Olymp.Controllers
             }
             Db?.Animals.Remove(deleteAnimal);
 
-
-            Db?.SaveChanges();
+            Db?.SaveChanges();      
+            // TODO: уточнить, почему по тз статус код 200, а не 204
             return NoContent();
         }
 
 
 
+
         [NonAction]
-        public AnimalPostViewModel getAnimalFromRequestBody(HttpRequest request)
+        public AnimalEntity DeserializeAnimal(HttpRequest request)
         { 
-            return JsonSerializer.Deserialize<AnimalPostViewModel>(GetJSONRequestBody(request.Body));
+            return JsonSerializer.Deserialize<AnimalEntity>(GetJSONBody(request.Body));
+        }
+
+        [NonAction]
+        public Stream SerializeAnimal(AnimalEntity animal)
+        {
+            var stream = new MemoryStream();
+            JsonSerializer.Serialize<AnimalEntity>(stream, animal);
+            return stream;
+        }
+
+        [NonAction]
+        public static string GetJSONBody(Stream stream)
+        {
+            var bodyStream = new StreamReader(stream);
+            var bodyText = bodyStream.ReadToEndAsync();
+            return bodyText.Result;
         }
 
         [NonAction]
@@ -269,12 +343,5 @@ namespace RESTful_API_Olymp.Controllers
             }
         }
 
-        [NonAction]
-        public static string GetJSONRequestBody(Stream stream)
-        {
-            var bodyStream = new StreamReader(stream);
-            var bodyText = bodyStream.ReadToEndAsync();
-            return bodyText.Result;
-        }
     }
 }

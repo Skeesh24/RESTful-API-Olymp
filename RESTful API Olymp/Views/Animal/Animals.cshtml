@@ -8,8 +8,6 @@
 @foreach (var animal in Model.Animals)
 {
     <div class="genCard"  >
-        <h1>@animal.Name</h1>
-
         <p>
             Types: [@String.Join(", ",animal?.AnimalTypes?.Select(x => x+""))] <br /> 
             Weight: @animal.Weight <br /> 

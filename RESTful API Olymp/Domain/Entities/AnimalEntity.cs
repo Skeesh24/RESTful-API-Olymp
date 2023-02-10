@@ -4,8 +4,6 @@ namespace RESTful_API_Olymp.Domain.Entities
 {
     public class AnimalEntity : BaseEntity
     {
-        public string? Name { get; set; }
-
         public long[] AnimalTypes { get; set; }
 
         public float Weight { get; set; }
@@ -26,6 +24,7 @@ namespace RESTful_API_Olymp.Domain.Entities
 
         public long[] VisitingLocations { get; set; }
 
-        public DateTime DeathDateTime { get; set; }
+        public DateTime? DeathDateTime { get; set; }
     }
 }
+
