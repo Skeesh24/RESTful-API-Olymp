@@ -16,17 +16,12 @@ namespace RESTful_API_Olymp.Controllers
             Db = context;
         }
 
-        [HttpGet]
-        public IActionResult Registration()
-        {
-            ViewBag.Title = "Профиль";
-            return View();
-        }
-
 
         [HttpPost]
         public IActionResult Registration(string firstName, string secondName, string email, string password)
         {
+            //if(Authenticate())
+
             if (string.IsNullOrEmpty(firstName) || firstName.Split().Length > 0)
                 return BadRequest();
 
@@ -46,21 +41,16 @@ namespace RESTful_API_Olymp.Controllers
             var newid = Db.Accounts.ToList().Count + 1;
             Db.Accounts.Add(new AccountEntity
             {
+                Id = newid,
                 FirstName = firstName,
                 LastName = secondName,
                 Email = email,
                 Password = password,
-                Id = newid,
             });
 
 
             Db.SaveChanges();
-            Response.StatusCode = 201;
-            return Redirect($"home/index");
+            return StatusCode(201);
         }
-
-
-
-        
     }
 }

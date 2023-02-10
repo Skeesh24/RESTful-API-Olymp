@@ -2,6 +2,7 @@
 using RESTful_API_Olymp.Domain;
 using RESTful_API_Olymp.Domain.Entities;
 using RESTful_API_Olymp.Models;
+using RESTful_API_Olymp.Static_Helper;
 using System.Text;
 using System.Text.Json;
 
@@ -24,7 +25,7 @@ namespace RESTful_API_Olymp.Controllers
             if (animalid == 0 || animalid == null)
                 return BadRequest();
 
-            if (!Authenticate(out int code) && code != 1)
+            if (!Helper.Authenticate(Request, Db, out int code) && code != 1)
                 return Unauthorized();
 
             var getAnimal = Db.Animals.Where(x => x.Id == animalid).FirstOrDefault();
@@ -43,7 +44,7 @@ namespace RESTful_API_Olymp.Controllers
         [HttpGet("animal/animals/search")]
         public IActionResult Search(DateTime? startDateTime, DateTime? endDateTime, int chipperId, long chippingLocationId, string lifeStatus, string gender, int from, int size)
         {
-            if (!Authenticate(out int code) && code != 1)
+            if (!Helper.Authenticate(Request, Db, out int code) && code != 1)
                 return Unauthorized();
 
             if (from < 0 || size <= 0) return BadRequest();
@@ -78,10 +79,10 @@ namespace RESTful_API_Olymp.Controllers
         [HttpPost]
         public IActionResult AnimalPost()
         {
-            if(!Authenticate(out int code) && code == 0)
+            if(!Helper.Authenticate(Request, Db, out int code) && code == 0)
                 return Unauthorized();         
 
-            var animal = DeserializeAnimal(Request);
+            var animal = Helper.DeserializeAnimal(Request);
             if (animal == null)
             {
                 return BadRequest();
@@ -104,11 +105,8 @@ namespace RESTful_API_Olymp.Controllers
             }
 
             // чек на то, что чиппер айди присутствует в таблице акков
-            foreach(var acc in Db.Accounts.ToArray())
-            {
-                if(animal.ChipperId != acc.Id)
-                    return NotFound();
-            }
+            if(!Db.Accounts.Select(x => x.Id).Contains(animal.ChipperId))
+                return NotFound();
 
             if (!Db.Locations.Any(x => x.locationPointId == animal.ChippingLocationId))
                 return NotFound();
@@ -134,7 +132,7 @@ namespace RESTful_API_Olymp.Controllers
                 Gender = animal.Gender,
                 ChipperId = animal.ChipperId,
                 ChippingLocationId = animal.ChippingLocationId,
-                ChippingDateTime = DateTime.Now,
+                ChippingDateTime = DateTime.UtcNow,
             };
             newAnimal.VisitingLocations = new long[] { animal.ChippingLocationId };
 
@@ -154,10 +152,10 @@ namespace RESTful_API_Olymp.Controllers
             if (animalId <= 0 || animalId == null)
                 return BadRequest();
 
-            if (!Authenticate(out int code) && code == 0)
+            if (!Helper.Authenticate(Request,Db,out int code) && code == 0)
                 return Unauthorized();
 
-            var animal = DeserializeAnimal(Request);
+            var animal = Helper.DeserializeAnimal(Request);
 
             var putAnimal = Db?.Animals.Where(x => x.Id == animalId).FirstOrDefault();
             if (putAnimal == null)
@@ -187,7 +185,7 @@ namespace RESTful_API_Olymp.Controllers
                 return BadRequest();
 
             // новая точка чипирования совпадает с первой посещенной точкой локации
-            if (animal.ChippingLocationId == Db.Locations?.FirstOrDefault()?.locationPointId)
+            if (animal.ChippingLocationId == putAnimal.VisitingLocations.FirstOrDefault())
                 return BadRequest();
 
             if (!"ALIVEDEAD".Contains(animal.LifeStatus))
@@ -197,21 +195,16 @@ namespace RESTful_API_Olymp.Controllers
             if (putAnimal.LifeStatus == "DEAD" && animal.LifeStatus == "ALIVE")
                 return BadRequest();
 
-
-
             // чек на то, что чиппер айди присутствует в таблице акков
-            foreach (var acc in Db.Accounts.ToArray())
-            {
-                if (animal.ChipperId != acc.Id)
-                    return NotFound();
-            }
+            if(!Db.Accounts.Select(x => x.Id).Contains(animal.ChipperId))
+                return NotFound();
 
             if (!Db.Locations.Any(x => x.locationPointId == animal.ChippingLocationId))
                 return NotFound();
 
 
-            if (animal.LifeStatus == "DEAD")
-                animal.DeathDateTime = DateTime.Now;
+            if (animal.LifeStatus == "DEAD" && animal.DeathDateTime != null)
+                animal.DeathDateTime = DateTime.UtcNow;
 
             Db?.Animals.Remove(putAnimal);
             var newAnimal = new AnimalEntity
@@ -227,8 +220,11 @@ namespace RESTful_API_Olymp.Controllers
                 ChipperId = animal.ChipperId,
                 ChippingLocationId = animal.ChippingLocationId,
             };
+
             if(animal.LifeStatus != null)
                 newAnimal.LifeStatus = animal.LifeStatus;
+            if(animal.DeathDateTime != null)
+                newAnimal.DeathDateTime = animal.DeathDateTime;
 
             Db?.Animals.Add(newAnimal);
 
@@ -247,7 +243,7 @@ namespace RESTful_API_Olymp.Controllers
             if (animalId == 0 || animalId == null)
                 return BadRequest();
 
-            if (!Authenticate(out int code) && code == 0)
+            if (!Helper.Authenticate(Request, Db, out int code) && code == 0)
                 return Unauthorized();
 
 
@@ -260,88 +256,12 @@ namespace RESTful_API_Olymp.Controllers
             if (deleteAnimal.ChippingLocationId != deleteAnimal.VisitingLocations.First() && deleteAnimal.VisitingLocations.Length > 1)
                 return BadRequest();
 
-            if (deleteAnimal == null)
-            {
-                return NotFound();
-            }
             Db?.Animals.Remove(deleteAnimal);
+         
 
             Db?.SaveChanges();      
             // TODO: уточнить, почему по тз статус код 200, а не 204
             return NoContent();
         }
-
-
-
-
-        [NonAction]
-        public AnimalEntity DeserializeAnimal(HttpRequest request)
-        { 
-            return JsonSerializer.Deserialize<AnimalEntity>(GetJSONBody(request.Body));
-        }
-
-        [NonAction]
-        public Stream SerializeAnimal(AnimalEntity animal)
-        {
-            var stream = new MemoryStream();
-            JsonSerializer.Serialize<AnimalEntity>(stream, animal);
-            return stream;
-        }
-
-        [NonAction]
-        public static string GetJSONBody(Stream stream)
-        {
-            var bodyStream = new StreamReader(stream);
-            var bodyText = bodyStream.ReadToEndAsync();
-            return bodyText.Result;
-        }
-
-        [NonAction]
-        public bool Authenticate(out int exitCode)
-        {
-            // exit codes:
-            // 0 - success auth, yeah
-            // 1 - error
-            // 2 - incorrect pass
-            // 3 - incorrect email
-
-            string input = Request.Headers["Authorization"];
-
-            if (input != null && input.StartsWith("Basic"))
-            {
-                var encoder = Encoding.UTF8;
-
-                var userAndPassword = encoder.GetString(Convert.FromBase64String(input.Substring("Basic ".Length).Trim()));
-
-                var index = userAndPassword.IndexOf(":");
-                var email = userAndPassword.Substring(0, index);
-                var password = userAndPassword[(index + 1)..];
-                
-                if(!Db.Accounts.Any(x => x.Email == email))
-                {
-                    exitCode = 3;
-                    return false;
-                } 
-
-                var accoundPass = Db.Accounts.Where(x => x.Email == email).FirstOrDefault().Password;
-
-                if (password.Equals(accoundPass))
-                {
-                    exitCode = 0;
-                    return true;
-                }
-                else
-                {
-                    exitCode = 2;
-                    return false;
-                }
-            }
-            else
-            {
-                exitCode = 1;
-                return false;
-            }
-        }
-
     }
 }
