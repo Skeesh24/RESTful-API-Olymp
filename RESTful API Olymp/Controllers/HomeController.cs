@@ -15,8 +15,6 @@ namespace RESTful_API_Olymp.Controllers
         }
 
 
-
-        [HttpGet]
         public IActionResult Index()
         {
             ViewBag.Title = "Главная";

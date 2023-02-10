@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using RESTful_API_Olymp.Domain;
 using RESTful_API_Olymp.Domain.CodeResults;
 using RESTful_API_Olymp.Domain.Entities;
+using RESTful_API_Olymp.Static_Helper;
 using System.Text;
 
 namespace RESTful_API_Olymp.Controllers
@@ -20,7 +21,9 @@ namespace RESTful_API_Olymp.Controllers
         [HttpPost]
         public IActionResult Registration(string firstName, string secondName, string email, string password)
         {
-            //if(Authenticate())
+            // TODO: считается ли за отсутствие автооризации ввод неверного пароля или имейла для отработки ифа?
+            if (Helper.Authenticate(Request, Db, out int code))
+                return new AuthorizedRequestResult();
 
             if (string.IsNullOrEmpty(firstName) || firstName.Split().Length > 0)
                 return BadRequest();
