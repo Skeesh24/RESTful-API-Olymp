@@ -82,7 +82,7 @@ namespace RESTful_API_Olymp.Controllers
             if(!Helper.Authenticate(Request, Db, out int code) && code == 0)
                 return Unauthorized();         
 
-            var animal = Helper.DeserializeAnimal(Request);
+            var animal = Helper.DeserializeJson<AnimalEntity>(Request);
             if (animal == null)
             {
                 return BadRequest();
@@ -155,7 +155,7 @@ namespace RESTful_API_Olymp.Controllers
             if (!Helper.Authenticate(Request,Db,out int code) && code == 0)
                 return Unauthorized();
 
-            var animal = Helper.DeserializeAnimal(Request);
+            var animal = Helper.DeserializeJson<AnimalEntity>(Request);
 
             var putAnimal = Db?.Animals.Where(x => x.Id == animalId).FirstOrDefault();
             if (putAnimal == null)
@@ -256,12 +256,40 @@ namespace RESTful_API_Olymp.Controllers
             if (deleteAnimal.ChippingLocationId != deleteAnimal.VisitingLocations.First() && deleteAnimal.VisitingLocations.Length > 1)
                 return BadRequest();
 
-            Db?.Animals.Remove(deleteAnimal);
-         
+
+
+            var newTypeList = Db?.Animals?.ToList();
+            newTypeList?.Remove(deleteAnimal);
+
+
+            // повторная индексация ключей
+            for (var elem = 1; elem <= newTypeList.Count; elem++)
+            {
+                var updateElem = new AnimalEntity
+                {
+                    Id = elem,
+                    AnimalTypes = newTypeList[elem - 1].AnimalTypes,
+                    ChipperId = newTypeList[elem - 1].ChipperId,
+                    ChippingDateTime = newTypeList[elem - 1].ChippingDateTime,
+                    ChippingLocationId = newTypeList[elem - 1].ChippingLocationId,
+                    DeathDateTime = newTypeList[elem - 1].DeathDateTime,
+                    Gender = newTypeList[elem - 1].Gender,
+                    Height = newTypeList[elem - 1].Height,
+                    Length = newTypeList[elem - 1].Length,
+                    LifeStatus = newTypeList[elem - 1].LifeStatus,
+                    VisitingLocations = newTypeList[elem - 1].VisitingLocations,
+                    Weight = newTypeList[elem - 1].Weight
+                };
+                newTypeList[elem - 1] = updateElem;
+            }
+
+            Db?.Animals.RemoveRange(Db?.Animals);
+            Db?.Animals.AddRangeAsync(newTypeList);
+
 
             Db?.SaveChanges();      
             // TODO: уточнить, почему по тз статус код 200, а не 204
-            return NoContent();
+            return Ok();
         }
     }
 }

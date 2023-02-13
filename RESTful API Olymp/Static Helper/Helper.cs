@@ -7,16 +7,16 @@ namespace RESTful_API_Olymp.Static_Helper
 {
     public class Helper
     {
-        public static AnimalEntity DeserializeAnimal(HttpRequest request)
+        public static T DeserializeJson<T> (HttpRequest request)
         {
-            return JsonSerializer.Deserialize<AnimalEntity>(GetJSONBody(request.Body));
+            return JsonSerializer.Deserialize<T>(GetJSONBody(request.Body));
         }
 
         public static Stream SerializeAnimal(AnimalEntity animal)
         {
             var stream = new MemoryStream();
             JsonSerializer.Serialize(stream, animal);
-            return stream;
+            return stream;  
         }
         
         public static string GetJSONBody(Stream stream)

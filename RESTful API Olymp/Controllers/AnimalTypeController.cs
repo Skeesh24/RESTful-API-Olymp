@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RESTful_API_Olymp.Domain;
 using RESTful_API_Olymp.Domain.Entities;
 using RESTful_API_Olymp.Models;
+using RESTful_API_Olymp.Static_Helper;
 using System.Text.Json;
 
 namespace RESTful_API_Olymp.Controllers
@@ -17,25 +19,22 @@ namespace RESTful_API_Olymp.Controllers
 
 
         [HttpGet("animals/types")]
-        public IActionResult Types(long typeId)
+        public IActionResult Types(long? typeId)
         {
-            ViewBag.Title = "Типы";
-            var vm = new TypeViewModel { Types = Db?.Types.Where(x => x.Id == typeId).ToList() };
-            return View(vm);
-        }
+            if (typeId == null || typeId <= 0)
+                return BadRequest();
+
+            if (!Helper.Authenticate(Request, Db, out int code) && code != 1)
+                return Unauthorized();
+
+            var type = Db.Types.Where(x => x.Id == typeId).FirstOrDefault();
+
+            if (type == null)
+                return NotFound();
 
 
-
-        public TypePostViewModel getTypeFromRequestBody(HttpRequest request)
-        {
-            return JsonSerializer.Deserialize<TypePostViewModel>(GetJSONRequestBody(request.Body));
-        }
-
-        public static string GetJSONRequestBody(Stream stream)
-        {
-            var bodyStream = new StreamReader(stream);
-            var bodyText = bodyStream.ReadToEndAsync();
-            return bodyText.Result;
+            Response.StatusCode = 200;
+            return Json(type);
         }
 
 
@@ -43,71 +42,117 @@ namespace RESTful_API_Olymp.Controllers
         [HttpPost]
         public IActionResult TypePost()
         {
-            var type = getTypeFromRequestBody(Request);
+            if (!Helper.Authenticate(Request, Db, out int code) && code == 0)
+                return Unauthorized();
+
+            var type = Helper.DeserializeJson<TypeEntity>(Request);
+
+            if (type == null)
+                return NotFound();
+
+            // тип = пуст, пустая строка или пробелы
+            if (type.Type == "" || type.Type == null || type.Type.Split()?.FirstOrDefault()?.Count() == 0)
+                return BadRequest();
+
+            // тип существует
+            if (Db?.Types.Where(x => x.Type == type.Type).Count() > 0)
+                return BadRequest();
+
 
             long newid = Db.Types.ToList().Count + 1;
 
-            if (type == null)
-            {
-                return BadRequest();
-            }
-
-            Db.Types.Add(new TypeEntity
+            var newType = new TypeEntity
             {
                 Type = type.Type,
                 Id = newid,
-            });
+            };
+            Db.Types.Add(newType);
+
 
             Db.SaveChanges();
-            return RedirectToAction($"locationpoint/locations?locationId={newid}");
+            Response.StatusCode = 201;  
+            return Json(newType);
         }
 
 
 
         [HttpPut]
-        public IActionResult TypePut(long typeId)
+        public IActionResult TypePut(long? typeId)
         {
-            var type = getTypeFromRequestBody(Request);
-
-            var putType = Db?.Types.Where(x => x.Id == typeId).FirstOrDefault();
-            if (putType == null)
-            {
-                return NotFound();
-            }
-
-            if (type == null)
-            {
+            if (typeId == null || typeId <= 0)
                 return BadRequest();
-            }
 
-            Db?.Types.Remove(putType);
-            Db?.Types.Add(new TypeEntity
+            if (!Helper.Authenticate(Request, Db, out int code) && code == 0)
+                return Unauthorized();
+
+            var type = Helper.DeserializeJson<TypeEntity>(Request);
+            if (type == null)
+                return BadRequest();
+
+            if (type.Type == null || type.Type == "")
+                return BadRequest();
+
+
+            var oldType = Db.Types.Where(x => x.Id == typeId).FirstOrDefault();
+
+            if (oldType == null)
+                return NotFound();
+
+            Db?.Types.Remove(oldType);
+            var newType = new TypeEntity
             {
-                Type = putType.Type,
-                Id = typeId,
-            });
+                Id = typeId.Value,
+                Type = type.Type,
+            };
+
+            Db?.Types.Add(newType);
 
 
             Db?.SaveChanges();
-            return AcceptedAtAction("");
+            Response.StatusCode = 200;
+            return Json(newType);
         }
 
 
 
         [HttpDelete]
-        public NoContentResult TypeDelete(long typeId)
+        public IActionResult TypeDelete(long? typeId)
         {
+            if (typeId == null || typeId <= 0)
+                return BadRequest();
+
+            if (!Helper.Authenticate(Request, Db, out int code) && code == 0)
+                return Unauthorized();
+
+            // существует животное с типом типАйди
+            if (Db.Animals.Any(x => x.AnimalTypes.ToList().Contains(typeId.Value)))
+                return BadRequest();
+
             var deleteType = Db?.Types?.Where(x => x.Id == typeId)?.FirstOrDefault();
 
             if (deleteType == null)
+                return NotFound();
+
+            var newTypeList = Db?.Types?.ToList();
+            newTypeList?.Remove(deleteType);
+
+
+            // повторная индексация ключей
+            for(var elem = 1; elem <= newTypeList.Count; elem++)
             {
-                return NoContent();
+                var updateElem = new TypeEntity { 
+                    Id = elem, 
+                    Type = newTypeList[elem-1].Type, 
+                };
+                newTypeList[elem-1] = updateElem;
             }
-            Db?.Types.Remove(deleteType);
 
-
+            Db?.Types.RemoveRange(Db?.Types);
+            Db?.Types.AddRangeAsync(newTypeList);
+            
+            
             Db?.SaveChanges();
-            return NoContent();
+            return Ok();
         }
     }
 }
