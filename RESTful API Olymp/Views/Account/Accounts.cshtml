@@ -3,10 +3,11 @@
     Layout = "_Layout";
 }
 
+<h2>Please, enter yr query in the search line</h2>
 
 @foreach (var account in Model.Accounts)
 {
-    <div class="animalCard" style="background-color: aquamarine; margin: 20px; padding: 30px; border-radius:15px;">
+    <div class="genCard">
         <h1>@account.LastName, @account.FirstName</h1>
 
         <p>
@@ -15,3 +16,4 @@
         </p>
     </div>
 }
+

@@ -1,0 +1,47 @@
+﻿@model RegistrationViewModel
+@{
+    Layout = "_Layout";
+}
+
+<style>
+	input{
+		margin: 20px;
+		width: 400px;
+		height: 40px;
+		border-radius: 10px;
+		outline: none;
+		color: Black;
+	}
+
+	input[type=text]{
+		background-color: whitesmoke;
+	}
+
+	input[type=submit]{
+		background-color: #28ea46;
+		color:white;
+	}
+
+</style>
+
+<form asp-controller="accounts" asp-action="registration">
+	<div class="col-6 col-12-mobilep">
+		<input type="text" name="firstName" id="firstName" placeholder="Name" asp-for="FirstName"/>
+	</div>
+
+	<div class="col-6 col-12-mobilep">
+		<input type="text" name="secondName" id="secondName" placeholder="Name" asp-for="SecondName"/>
+	</div>
+
+	<div class="col-12">
+		<input type="text" name="email" placeholder="Email" asp-for="Email" />
+	</div>
+
+	<div class="col-12">
+		<input type="text" name="password" placeholder="Password" asp-for="Password" />
+	</div>
+
+	<div class="col-12">
+		<input type="submit" asp-controller="accounts" asp-action="registration" class="button alt" value="Send Message" />
+	</div>
+</form>

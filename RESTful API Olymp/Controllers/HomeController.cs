@@ -15,13 +15,12 @@ namespace RESTful_API_Olymp.Controllers
         }
 
 
-
-        [HttpGet]
         public IActionResult Index()
         {
             ViewBag.Title = "Главная";
             return View();
         }
+<<<<<<< HEAD
 
 
 
@@ -124,5 +123,7 @@ namespace RESTful_API_Olymp.Controllers
             return Redirect($"accounts?accountid={newid}");
         }
 
+=======
+>>>>>>> auth
     }
 }
