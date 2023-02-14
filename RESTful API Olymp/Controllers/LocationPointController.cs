@@ -100,13 +100,13 @@ namespace RESTful_API_Olymp.Controllers
         
         
         [HttpDelete]
-        public NoContentResult LocationsDelete(long pointId)
+        public IActionResult LocationsDelete(long pointId)
         {
             var deletePoint = Db?.Points?.Where(x => x.Id == pointId)?.FirstOrDefault();
 
             if(deletePoint == null)
             { 
-                return NoContent();
+                return NotFound();
             }
             Db?.Points.Remove(deletePoint);
 
