@@ -35,9 +35,9 @@ namespace RESTful_API_Olymp.Controllers
 
 
 
-        public PointPostViewModel getPointFromRequestBody(HttpRequest request)
+        public void getPointFromRequestBody(HttpRequest request)
         {
-            return JsonSerializer.Deserialize<PointPostViewModel>(GetStringRequestBody(request.Body));
+            //return JsonSerializer.Deserialize<PointPostViewModel>(GetStringRequestBody(request.Body));
         }
 
         public static string GetStringRequestBody(Stream stream)
@@ -52,15 +52,15 @@ namespace RESTful_API_Olymp.Controllers
         [HttpPost]
         public IActionResult LocationsPost()
         {
-            var point = getPointFromRequestBody(Request);
+            //var point = getPointFromRequestBody(Request);
 
             long newid = Db.Points.ToList().Count + 1;
-            Db.Points.Add(new PointEntity
-            {
-                latitude = point.Latitude,
-                longitude = point.Longitude,
-                Id = newid,
-            });
+            //Db.Points.Add(new PointEntity
+            //{
+            //    latitude = point.Latitude,
+            //    longitude = point.Longitude,
+            //    Id = newid,
+            //});
 
             Db.SaveChanges();
             return RedirectToAction($"locationpoint/locations?locationId={newid}");
@@ -71,7 +71,7 @@ namespace RESTful_API_Olymp.Controllers
         [HttpPut]
         public IActionResult LocationsPut(long pointId)
         {
-            var point = getPointFromRequestBody(Request);
+            //var point = getPointFromRequestBody(Request);
 
             var putPoint = Db?.Points.Where(x => x.Id == pointId).FirstOrDefault();
             if(putPoint == null)
@@ -79,18 +79,18 @@ namespace RESTful_API_Olymp.Controllers
                 return NotFound();
             }
 
-            if(point == null)
-            {
-                return BadRequest();
-            }
+            //if(point == null)
+            //{
+            //    return BadRequest();
+            //}
 
             Db?.Points.Remove(putPoint);
-            Db?.Points.Add(new PointEntity
-            {
-                latitude = point.Latitude,
-                longitude = point.Longitude,
-                Id = pointId,
-            }) ;
+            //Db?.Points.Add(new PointEntity
+            //{
+            //    latitude = point.Latitude,
+            //    longitude = point.Longitude,
+            //    Id = pointId,
+            //}) ;
 
 
             Db?.SaveChanges();
