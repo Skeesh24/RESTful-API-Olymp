@@ -42,7 +42,7 @@ namespace RESTful_API_Olymp.Controllers
         [HttpPost]
         public IActionResult TypePost()
         {
-            if (!Helper.Authenticate(Request, Db, out int code) && code == 0)
+            if (!Helper.Authenticate(Request, Db, out int code) && code != 0)
                 return Unauthorized();
 
             var type = Helper.DeserializeJson<TypeEntity>(Request);
@@ -51,12 +51,12 @@ namespace RESTful_API_Olymp.Controllers
                 return NotFound();
 
             // тип = пуст, пустая строка или пробелы
-            if (type.Type == "" || type.Type == null || type.Type.Split()?.FirstOrDefault()?.Count() == 0)
+            if (string.IsNullOrEmpty(type.Type) || string.IsNullOrWhiteSpace(type.Type))
                 return BadRequest();
 
             // тип существует
             if (Db?.Types.Where(x => x.Type == type.Type).Count() > 0)
-                return BadRequest();
+                return Conflict();
 
 
             long newid = Db.Types.ToList().Count + 1;
@@ -82,14 +82,14 @@ namespace RESTful_API_Olymp.Controllers
             if (typeId == null || typeId <= 0)
                 return BadRequest();
 
-            if (!Helper.Authenticate(Request, Db, out int code) && code == 0)
+            if (!Helper.Authenticate(Request, Db, out int code) && code != 0)
                 return Unauthorized();
 
             var type = Helper.DeserializeJson<TypeEntity>(Request);
             if (type == null)
                 return BadRequest();
 
-            if (type.Type == null || type.Type == "")
+            if (string.IsNullOrEmpty(type.Type))
                 return BadRequest();
 
 
@@ -121,7 +121,7 @@ namespace RESTful_API_Olymp.Controllers
             if (typeId == null || typeId <= 0)
                 return BadRequest();
 
-            if (!Helper.Authenticate(Request, Db, out int code) && code == 0)
+            if (!Helper.Authenticate(Request, Db, out int code) && code != 0)
                 return Unauthorized();
 
             // существует животное с типом типАйди
@@ -129,7 +129,6 @@ namespace RESTful_API_Olymp.Controllers
                 return BadRequest();
 
             var deleteType = Db?.Types?.Where(x => x.Id == typeId)?.FirstOrDefault();
-
             if (deleteType == null)
                 return NotFound();
 

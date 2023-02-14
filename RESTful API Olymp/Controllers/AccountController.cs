@@ -3,6 +3,8 @@ using RESTful_API_Olymp.Domain;
 using RESTful_API_Olymp.Domain.Entities;
 using RESTful_API_Olymp.Models;
 using RESTful_API_Olymp.Static_Helper;
+using System.Linq;
+using System.Security.Principal;
 using System.Text.RegularExpressions;
 
 namespace RESTful_API_Olymp.Controllers
@@ -17,39 +19,13 @@ namespace RESTful_API_Olymp.Controllers
         }
 
 
-        [HttpGet("account/accounts/search")]
-        public IActionResult Search(string? firstName, string? lastName, string? email, int from = 0, int size = 10)
-        {
-            var foundAccount = Db?.Accounts.ToArray();
-            if (firstName != null) 
-                foundAccount = foundAccount?.Where(x => x.FirstName == firstName).ToArray();
-
-            if (lastName != null)
-                foundAccount = foundAccount?.Where(x => x.LastName == lastName).ToArray();
-
-            if (email != null)
-                foundAccount = foundAccount?.Where(x => x.Email == email).ToArray();
-
-            foundAccount = 
-                foundAccount
-                .Skip(from)
-                .Take(size)
-                .OrderBy(x => x.Id)
-                .ToArray();
-
-
-            Response.StatusCode = 200;
-            return Json(foundAccount);
-        }
-
-
-
         [HttpGet/*("accounts/")*/]
-        public IActionResult Accounts(long? accountId)
+        public IActionResult Accounts(int? accountId)
         {
             if (accountId == null || accountId <= 0)
                 return BadRequest();
 
+            // доступно без авторизации, но ругается если try неудачен
             if (!Helper.Authenticate(Request, Db, out int code) && code != 1)
                 return Unauthorized();
 
@@ -63,45 +39,89 @@ namespace RESTful_API_Olymp.Controllers
         }
 
 
-        [HttpPut]
-        public IActionResult AccountsPut(int? accounId)
+
+        [HttpGet("account/accounts/search")]
+        public IActionResult Search(string? firstName, string? lastName, string? email, int from = 0, int size = 10)
         {
-            if (accounId == null || accounId <= 0)
+            if (!Helper.Authenticate(Request, Db, out int code) && code != 1)
+                return Unauthorized();
+
+            var foundAccount = Db?.Accounts.ToArray();
+            if (firstName != null) 
+                foundAccount = foundAccount?.Where(x => x.FirstName.Contains(firstName.ToLower())).ToArray();
+
+            if (lastName != null)
+                foundAccount = foundAccount?.Where(x => x.LastName.Contains(lastName.ToLower())).ToArray();
+
+            if (email != null)
+                foundAccount = foundAccount?.Where(x => x.Email.Contains(email.ToLower())).ToArray();
+
+            foundAccount = 
+                foundAccount?
+                .Skip(from)
+                .Take(size)
+                .OrderBy(x => x.Id)
+                .ToArray();
+
+
+            Response.StatusCode = 200;
+            return Json(foundAccount);
+        }
+
+
+
+        [HttpPut]
+        public IActionResult AccountsPut(int? accountId)
+        {
+            if (accountId == null || accountId <= 0)
                 return BadRequest();
 
             if (!Helper.Authenticate(Request, Db, out int code) && code == 0)
                 return Unauthorized();
-
+                 
             var account = Helper.DeserializeJson<AccountEntity>(Request);
+            
+            //// проверка, что действия со своим аккаунтом
+            //string input = Request.Headers["Authorization"];
+            //if (input != null && input.StartsWith("Basic"))
+            //{
+            //    var emailAndpass = Helper.GetStringFromBase64(input);
+            //    // TODO: check
+            //    if (emailAndpass.Substring(0, emailAndpass.Split(":")[0].Length) == account.Email)
+            //        return StatusCode(403);
 
-            var putAccount = Db?.Accounts.Where(x => x.Id == accounId).FirstOrDefault();
+            //}
+
+            var putAccount = Db?.Accounts.Where(x => x.Id == accountId).FirstOrDefault();
             if (putAccount == null)
             {
                 return NotFound();
             }
 
-            if (account.FirstName == null || account.FirstName == "" | account.FirstName.Split().Count() == 1)
+            // действие со своим аккаунтом TODO: перепроверить
+            if (!(putAccount.Password == account.Password && putAccount.Id == accountId))
+                return StatusCode(403);
+
+            if (string.IsNullOrEmpty(account.FirstName) || string.IsNullOrWhiteSpace(account.FirstName))
                 return BadRequest();
 
-            if (account.LastName == null || account.LastName == "" || account.LastName.Split().Count() == 1)
+            if (string.IsNullOrEmpty(account.LastName) || string.IsNullOrWhiteSpace(account.LastName))
                 return BadRequest();
 
-            if (account.Email == null || account.Email == "" || !Regex.IsMatch(account.Email, "(\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*)"))
+            if (string.IsNullOrEmpty(account.Email) || string.IsNullOrWhiteSpace(account.Email)
+                || !Regex.IsMatch(account.Email, "(\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*)"))
                 return BadRequest();
 
-            // обновление не своего аккаунта
-            if(account.Id != putAccount.Id)
-                return StatusCode(203);
 
             // аккаунт с таким имейлом уже существует
-            if (Db.Accounts.Any(x => x.Email == account.Email))
-                return StatusCode(209);
+            if (Db?.Accounts.Where(x => x.Email == account.Email).Count() > 1)
+                return StatusCode(409);
             
 
             Db?.Accounts.Remove(putAccount);
             var newAccount = new AccountEntity
             {
-                Id = account.Id,
+                Id = accountId.Value,
                 Email = account.Email,
                 FirstName = account.FirstName,
                 LastName = account.LastName,
@@ -125,7 +145,7 @@ namespace RESTful_API_Olymp.Controllers
             if (accountId == 0 || accountId == null)
                 return BadRequest();
 
-            if (!Helper.Authenticate(Request, Db, out int code) && code == 0)
+            if (!Helper.Authenticate(Request, Db, out int code) && code != 0)
                 return Unauthorized();
 
 
@@ -135,9 +155,15 @@ namespace RESTful_API_Olymp.Controllers
             if (deleteAccount == null)
                 return StatusCode(403);
 
-            // удаление не своего аккаунта
-            if (deleteAccount.Id != accountId)
-                return StatusCode(403);
+            // проверка на свой акк
+            string input = Request.Headers["Authorization"];
+            if (input != null && input.StartsWith("Basic"))
+            {
+                var emailAndpass = Helper.GetStringFromBase64(input);
+                // TODO: check = OK
+                if (emailAndpass.Substring(0, emailAndpass.Split(":")[0].Length) != deleteAccount.Email)
+                    return StatusCode(403);
+            }
 
             // аккаунт связан с животным - TODO: уточнить корректность
             if (Db.Animals.Any(x => x.ChipperId == accountId))

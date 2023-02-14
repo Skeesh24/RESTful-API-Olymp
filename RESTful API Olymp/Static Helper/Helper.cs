@@ -38,9 +38,7 @@ namespace RESTful_API_Olymp.Static_Helper
 
             if (input != null && input.StartsWith("Basic"))
             {
-                var encoder = Encoding.UTF8;
-
-                var userAndPassword = encoder.GetString(Convert.FromBase64String(input.Substring("Basic ".Length).Trim()));
+                var userAndPassword = GetStringFromBase64(input);
 
                 var index = userAndPassword.IndexOf(":");
                 var email = userAndPassword.Substring(0, index);
@@ -70,6 +68,16 @@ namespace RESTful_API_Olymp.Static_Helper
                 exitCode = 1;
                 return false;
             }
+        }
+
+
+        public static string GetStringFromBase64(string base64encodingstring)
+        {
+            var encoder = Encoding.UTF8;
+
+            var userAndPassword = encoder.GetString(Convert.FromBase64String(base64encodingstring.Substring("Basic ".Length).Trim()));
+
+            return userAndPassword;
         }
     }
 }

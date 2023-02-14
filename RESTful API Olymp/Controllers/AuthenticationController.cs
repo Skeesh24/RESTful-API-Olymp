@@ -19,41 +19,37 @@ namespace RESTful_API_Olymp.Controllers
 
 
         [HttpPost]
-        public IActionResult Registration(string firstName, string secondName, string email, string password)
+        public IActionResult Registration()
         {
+            var newAccount = Helper.DeserializeJson<AccountEntity>(Request);
+
             // TODO: считается ли за отсутствие автооризации ввод неверного пароля или имейла для отработки ифа?
             if (Helper.Authenticate(Request, Db, out int code))
                 return new AuthorizedRequestResult();
 
-            if (string.IsNullOrEmpty(firstName) || firstName.Split().Length > 0)
+            if (string.IsNullOrEmpty(newAccount.FirstName) || newAccount.FirstName.Split().Length > 1)
                 return BadRequest();
 
-            if (string.IsNullOrEmpty(secondName) || secondName.Split().Length > 0)
+            if (string.IsNullOrEmpty(newAccount.LastName) || newAccount.LastName.Split().Length > 1)
                 return BadRequest();
 
-            if (string.IsNullOrEmpty(email) || secondName.Split().Length > 0)
+            if (string.IsNullOrEmpty(newAccount.Email) || newAccount.Email.Split().Length > 1)
                 return BadRequest();
 
-            if (string.IsNullOrEmpty(password) || password.Split().Length > 0)
+            if (string.IsNullOrEmpty(newAccount.Password) || newAccount.Password.Split().Length > 1)
                 return BadRequest();
 
-            if (Db.Accounts.Any(x => x.Email == email))
+            if (Db.Accounts.Any(x => x.Email == newAccount.Email))
                 return new ExistedEmailResult();
 
-
             var newid = Db.Accounts.ToList().Count + 1;
-            Db.Accounts.Add(new AccountEntity
-            {
-                Id = newid,
-                FirstName = firstName,
-                LastName = secondName,
-                Email = email,
-                Password = password,
-            });
+            Db.Accounts.Add(newAccount);
+            newAccount.Id = newid;
 
 
             Db.SaveChanges();
-            return StatusCode(201);
+            Response.StatusCode = 201;
+            return Json(newAccount);
         }
     }
 }
