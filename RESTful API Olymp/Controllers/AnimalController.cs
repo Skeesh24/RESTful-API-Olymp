@@ -3,8 +3,7 @@ using RESTful_API_Olymp.Domain;
 using RESTful_API_Olymp.Domain.Entities;
 using RESTful_API_Olymp.Models;
 using RESTful_API_Olymp.Static_Helper;
-using System.Text;
-using System.Text.Json;
+using System.Reflection.Metadata.Ecma335;
 
 namespace RESTful_API_Olymp.Controllers
 {
@@ -290,6 +289,116 @@ namespace RESTful_API_Olymp.Controllers
             Db?.SaveChanges();      
             // TODO: уточнить, почему по тз статус код 200, а не 204
             return Ok();
+        }
+
+        // Добавление типа животного к животному
+        [Route("animal/{animalId}/types/{typeId}")]
+        public IActionResult Animal(long? animalId, long? typeId)
+        {
+            if (!Helper.Authenticate(Request, Db, out int code) && code != 0)
+                return Unauthorized();
+
+            if (animalId == null || animalId <= 0)
+                return BadRequest();
+
+            if (typeId == null || typeId <= 0)
+                return BadRequest();
+
+            if (Db?.Animals.Where(x => x.Id == animalId).Count() == 0)
+                return NotFound();
+
+            if (Db?.Types.Where(x => x.Id == typeId).Count() == 0)
+                return NotFound();
+
+            var animal = Db?.Animals.Where(x => x.Id == animalId).FirstOrDefault();
+            animal.AnimalTypes = animal.AnimalTypes.Append(typeId.Value).ToArray();
+
+
+            Db?.SaveChanges();
+            Response.StatusCode = 201;
+            return Json(animal);
+        }
+
+
+        // Редактирования типа животного у животного
+        [Route("animals/{animalId}/types")]
+        public IActionResult EditAnimalType(long? animalId)
+        {
+            if (animalId <= 0 || animalId == null)
+                return BadRequest();
+
+            if (!Helper.Authenticate(Request, Db, out int code) && code == 0)
+                return Unauthorized();
+
+            var typeVM = Helper.DeserializeJson<OldAndNewTypeViewModel>(Request);
+
+            if (typeVM == null || typeVM.OldTypeId == null || typeVM.NewTypeId == null || typeVM.NewTypeId <= 0 || typeVM.OldTypeId <= 0)
+                return BadRequest();
+
+            var animal = Db.Animals.Where(x => x.Id == animalId).FirstOrDefault();
+
+            if (animal == null)
+                return NotFound();
+
+            if (Db?.Types.Where(x => x.Id == typeVM.OldTypeId || x.Id == typeVM.NewTypeId).Count() == 0)
+                return NotFound();
+
+            if (!animal.AnimalTypes.ToList().Contains(typeVM.OldTypeId.Value))
+                return NotFound();
+
+            if (animal.AnimalTypes.ToList().Contains(typeVM.NewTypeId.Value))
+                return Conflict();
+
+            if (animal.AnimalTypes.ToList().Contains(typeVM.NewTypeId.Value) && animal.AnimalTypes.ToList().Contains(typeVM.OldTypeId.Value))
+                return Conflict();
+
+            // импровизированный срез
+            animal.AnimalTypes = animal.AnimalTypes.Where(x => !(x == typeVM.OldTypeId)).ToArray();
+            animal.AnimalTypes = animal.AnimalTypes.ToList().Append(typeVM.NewTypeId.Value)/*.OrderBy(x => x)*/.ToArray();
+
+
+            Db?.SaveChanges();
+            Response.StatusCode = 200;
+            return Json(animal);
+        }
+
+
+        // Удаление типа животнолго у животного
+        [Route("animals/{animalId:long}/types/{typeId:long}")]
+        public IActionResult DeleteAnimalType(long? animalId, long? typeId)
+        {
+            if (!Helper.Authenticate(Request, Db, out int code) && code != 0)
+                return Unauthorized();
+
+            if (animalId == null || animalId <= 0)
+                return BadRequest();
+
+            if (typeId == null || typeId <= 0)
+                return BadRequest();
+
+            var animal = Db?.Animals.Where(x => x.Id == animalId).FirstOrDefault();
+
+            if (animal == null)
+                return NotFound();
+
+            // у животного с animalId нет типа с typeId 
+            if (!animal.AnimalTypes.Contains(typeId.Value))
+                return NotFound();
+
+            // тип животного с typeId не найден
+            if (Db?.Types.Where(x => x.Id == typeId).Count() == 0)
+                return NotFound();
+                
+            // У животного только один тип и это тип с typeId
+            if (animal.AnimalTypes.Contains(typeId.Value) && animal.AnimalTypes.Length == 1)
+                return BadRequest();
+
+            animal.AnimalTypes = animal.AnimalTypes.Where(x => x != typeId).ToArray();
+
+
+            Db?.SaveChanges();
+            Response.StatusCode = 200;
+            return Json(animal);
         }
     }
 }

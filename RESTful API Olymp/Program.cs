@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using RESTful_API_Olymp;
 using RESTful_API_Olymp.Domain;
+using RESTful_API_Olymp.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,15 +34,14 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/");
-
-// -Подумать над паттернами роутов- //
 //app.MapControllerRoute(
-//    name: "Account",
-//    pattern: "{controller=Account}/{action=}"
+//    name: "default",
+//    pattern: "{controller=Home}/{action=Index}/"
 //);
-// //
+
+app.MapControllerRoute(
+   name: "default",
+   pattern: "{controller=Animal}/{action=Animal}/{animalId:long?}/types/{typeId:long?}"
+);
 
 app.Run();
